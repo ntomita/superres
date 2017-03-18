@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-dataset/
+# System files
 .DS_Store
+
+# dataset
+dataset/
+
+# snapshot
+snapshot/
+
 
