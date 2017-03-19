@@ -18,10 +18,10 @@ def toImage(net_output):
 
 
 def test(argv=sys.argv[1:]):
-    input = "../dataset/Aplus/images/Set5/test/baby_GT.jpg"
+    input = "../dataset/BSDS300/images/val/54082.jpg"
     output = "sr_{}".format(basename(input))  # save in cwd
-    model = "snapshot/net-epoch-10.pth"
-    cuda = False
+    model = "snapshot/gnet-epoch-200-pretrain.pth"
+    cuda = True
     img = Image.open(input)
     width, height = img.size
 

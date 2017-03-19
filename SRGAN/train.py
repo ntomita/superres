@@ -20,7 +20,7 @@ from utils.utils import psnr
 
 def train(argv=sys.argv[1:]):
     upscale_factor = 4
-    cuda = False
+    cuda = True
     batch_size = 16
     snapshot_dir = 'snapshot'
     if not exists(snapshot_dir):
@@ -61,8 +61,12 @@ def train(argv=sys.argv[1:]):
     fake_label = 0
 
     if cuda:
-        net = net.cuda()
-        criterion = criterion.cuda()
+        gennet = gennet.cuda()
+        vgg = vgg.cuda()
+        disnet = disnet.cuda()
+        content_criterion = content_criterion.cuda()
+        adversarial_criterion = adversarial_criterion.cuda()
+        label = label.cuda()
 
     optimizerG = Adam(gennet.parameters(), lr=0.0001)
     optimizerD = Adam(disnet.parameters(), lr=0.0001)
@@ -85,8 +89,13 @@ def train(argv=sys.argv[1:]):
         epoch_loss_d = 0
         total_psnr = 0
         for i, batch in enumerate(training_data_loader, 1):
+            real_batch_size = batch[0].size(0)
+            label.data.resize_(real_batch_size)
+
             target = Variable(batch[0])
             input = Variable(batch[1])
+            print(target.size())
+            print(input.size())
             if cuda:
                 target = target.cuda()
                 input = input.cuda()
@@ -94,6 +103,7 @@ def train(argv=sys.argv[1:]):
             # Train Generator
             optimizerG.zero_grad()
             reconstructed = gennet(input)
+            print(reconstructed.size())
 
             feature_r = vgg(reconstructed)
             feature_t = vgg(target)
@@ -101,7 +111,9 @@ def train(argv=sys.argv[1:]):
             content_loss = content_criterion(feature_r, feature_t.detach())
 
             label.data.fill_(fake_label)
-            adversarial_loss = adversarial_criterion(disnet(reconstructed), label)
+            pred = disnet(reconstructed)
+            print(pred.size())
+            adversarial_loss = adversarial_criterion(pred, label)
 
             loss = content_loss + 1e-3*adversarial_loss
             loss.backward()
@@ -141,6 +153,8 @@ def train(argv=sys.argv[1:]):
         epoch_loss_d = 0
         total_psnr = 0
         for i, batch in enumerate(validation_data_loader, 1):
+            real_batch_size = batch[0].size(0)
+            label.data.resize_(real_batch_size)
             target = Variable(batch[0])
             input = Variable(batch[1])
             if cuda:
@@ -152,7 +166,7 @@ def train(argv=sys.argv[1:]):
             feature_r = vgg(reconstructed)
             feature_t = vgg(reconstructed)
 
-            content_loss = content_criterion(feature_r, feature_t)
+            content_loss = content_criterion(feature_r, feature_t.detach())
 
             label.data.fill_(fake_label)
             adversarial_loss = adversarial_criterion(disnet(reconstructed), label)
