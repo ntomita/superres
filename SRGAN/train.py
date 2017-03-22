@@ -22,6 +22,8 @@ def train(argv=sys.argv[1:]):
     upscale_factor = 4
     cuda = True
     batch_size = 16
+    start_epoch = 1
+    total_epochs = 200
     snapshot_dir = 'snapshot'
     if not exists(snapshot_dir):
         makedirs(snapshot_dir)
@@ -43,16 +45,16 @@ def train(argv=sys.argv[1:]):
         batch_size=batch_size,
         shuffle=False)
 
-    gennet_opts = dict()
-    gennet_opts['upscale_factor'] = upscale_factor
-    gennet = GenNet(net_opts=gennet_opts).train()
+    # gennet_opts = dict()
+    # gennet_opts['upscale_factor'] = upscale_factor
+    # gennet = GenNet(net_opts=gennet_opts).train()
+    model = "snapshot/gnet-epoch-200-pretrain.pth"
+    gennet = torch.load(model)
     vgg = vgg13_52()
-    # for param in vgg.parameters():
-    #     param.requires_grad = False
+    for param in vgg.parameters():
+        param.requires_grad = False
     disnet = DisNet().train()
 
-
-    start_epoch = 1
     content_criterion = nn.MSELoss()
     adversarial_criterion = nn.BCELoss()
 
@@ -94,8 +96,6 @@ def train(argv=sys.argv[1:]):
 
             target = Variable(batch[0])
             input = Variable(batch[1])
-            print(target.size())
-            print(input.size())
             if cuda:
                 target = target.cuda()
                 input = input.cuda()
@@ -103,16 +103,15 @@ def train(argv=sys.argv[1:]):
             # Train Generator
             optimizerG.zero_grad()
             reconstructed = gennet(input)
-            print(reconstructed.size())
 
             feature_r = vgg(reconstructed)
             feature_t = vgg(target)
 
             content_loss = content_criterion(feature_r, feature_t.detach())
 
-            label.data.fill_(fake_label)
+            # use real label for log(G(D)) instead of 1-log(G(D))
+            label.data.fill_(real_label)
             pred = disnet(reconstructed)
-            print(pred.size())
             adversarial_loss = adversarial_criterion(pred, label)
 
             loss = content_loss + 1e-3*adversarial_loss
@@ -123,6 +122,7 @@ def train(argv=sys.argv[1:]):
             optimizerD.zero_grad()
             reconstructed = gennet(input)
 
+            label.data.fill_(fake_label)
             fake_loss = adversarial_criterion(disnet(reconstructed.detach()), label)
             fake_loss.backward()
 
@@ -161,21 +161,23 @@ def train(argv=sys.argv[1:]):
                 target = target.cuda()
                 input = input.cuda()
             
+            # Forward pass for Generator
             reconstructed = gennet(input)
 
             feature_r = vgg(reconstructed)
-            feature_t = vgg(reconstructed)
+            feature_t = vgg(input)
 
             content_loss = content_criterion(feature_r, feature_t.detach())
 
-            label.data.fill_(fake_label)
+            label.data.fill_(real_label)
             adversarial_loss = adversarial_criterion(disnet(reconstructed), label)
 
             loss = content_loss + 1e-3*adversarial_loss
 
-            # Train Discriminator
+            # Forward pass for Discriminator
             reconstructed = gennet(input)
 
+            label.data.fill_(fake_label)
             fake_loss = adversarial_criterion(disnet(reconstructed.detach()), label)
 
             label.data.fill_(real_label)
@@ -205,7 +207,7 @@ def train(argv=sys.argv[1:]):
         torch.save(disnet, path)
 
 
-    for epoch in range(start_epoch, 10+1):
+    for epoch in range(start_epoch, total_epochs+1):
         train_epoch(epoch)
         validate(epoch)
         checkpoint(epoch)

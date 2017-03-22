@@ -4,7 +4,8 @@ from torch import autograd
 from torch.nn.init import xavier_normal, constant
 from torchvision import models
 
-
+""" Generator
+"""
 class ResBlock(nn.Module):
     def __init__(self, n=64, s=1, f=3):
         super().__init__()
@@ -59,21 +60,6 @@ class GenNet(nn.Module):
         for i in range(15):
             layers.append(ResBlock())
         self.resblocks = nn.Sequential(*layers)
-        # self.res1 = ResBlock()
-        # self.res2 = ResBlock()
-        # self.res3 = ResBlock()
-        # self.res4 = ResBlock()
-        # self.res5 = ResBlock()
-        # self.res6 = ResBlock()
-        # self.res7 = ResBlock()
-        # self.res8 = ResBlock()
-        # self.res9 = ResBlock()
-        # self.res10 = ResBlock()
-        # self.res11 = ResBlock()
-        # self.res12 = ResBlock()
-        # self.res13 = ResBlock()
-        # self.res14 = ResBlock()
-        # self.res15 = ResBlock()
         self.conv2 = nn.Conv2d(64, 64, 3, 1, 1)
         xavier_normal(self.conv2.weight)
         self.bn = nn.BatchNorm2d(64)
@@ -85,21 +71,6 @@ class GenNet(nn.Module):
     def forward(self, x):
         xs = self.relu(self.conv1(x))
         x = self.resblocks(xs)
-        # x = self.res1(xs)
-        # x = self.res2(x)
-        # x = self.res3(x)
-        # x = self.res4(x)
-        # x = self.res5(x)
-        # x = self.res6(x)
-        # x = self.res7(x)
-        # x = self.res8(x)
-        # x = self.res9(x)
-        # x = self.res10(x)
-        # x = self.res11(x)
-        # x = self.res12(x)
-        # x = self.res13(x)
-        # x = self.res14(x)
-        # x = self.res15(x)
         x = self.bn(self.conv2(x))
         x = x + xs
         x = self.relu(self.deconv1(x))
@@ -115,13 +86,19 @@ class Skip(nn.Module):
     def forward(self, input):
         return input
 
+""" VGG
+"""
+
 
 def vgg13_52():
     model = models.vgg13(pretrained=True)
-    model.features = nn.Sequential(*list(model.features.children())[:-1])  # remove last max pooling
+    # remove last max pooling
+    model.features = nn.Sequential(*list(model.features.children())[:-1])
     model.classifier = Skip()
     return model
 
+""" Discriminator
+"""
 
 netspec_opts = dict()
 netspec_opts['input_channels'] = 3
