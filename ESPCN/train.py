@@ -107,7 +107,7 @@ def train(argv=sys.argv[1:]):
     start_epoch = 1
     if args.resume is not None:
         if isfile(args.resume):
-            net = torch.load(args.resume)
+            net = torch.load(args.resume).train()
             start_epoch += int(re.findall("[+]?\d+[+]?", basename(args.resume))[0])
 
     criterion = nn.MSELoss()

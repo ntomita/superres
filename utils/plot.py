@@ -23,7 +23,7 @@ class Plots:
     def _set_lines(self):
         self.lines = []
         for i in range(self.nrows*self.ncols):
-            l, = self.axs[i].plot([], [], 'o')
+            l, = self.axs[i].plot([], [], 'o-')
             self.lines.append([l])
 
     def _calc_index(self, rind, cind):
@@ -60,7 +60,7 @@ class Plots:
 
     def add_line(self, rind=1, cind=1):
         i = self._calc_index(rind, cind)
-        l, = self.axs[i].plot([], [], 'o')
+        l, = self.axs[i].plot([], [], 'o-')
         self.lines[i].append(l)
 
     def update(self, xy_pair, rind=1, cind=1, lind=1):
