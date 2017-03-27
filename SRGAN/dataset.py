@@ -68,6 +68,7 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, index):
         target = load_image(self.images[index]).copy()
+        #print(target.size)
         if self.transform_target is not None:
             target = self.transform_target(target)
 

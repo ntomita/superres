@@ -29,7 +29,7 @@ def pre_train(argv=sys.argv[1:]):
             Default: 5
         lr             (l): learning rate for Adam
             float
-            Default: 0.001
+            Default: 0.0001 (1e-4)
         cuda           (c): use cuda
             true/false
             Default: false
@@ -227,7 +227,9 @@ def pre_train(argv=sys.argv[1:]):
     for epoch in range(start_epoch, total_epochs+1):
         train_epoch(epoch)
         validate(epoch)
-        checkpoint(epoch)
+        save_model_every = 10
+        if epoch % 10 == 0:
+            checkpoint(epoch)
     input("Finished: press enter key to close plots")
 
 

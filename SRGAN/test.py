@@ -3,7 +3,8 @@ from PIL import Image
 import torch
 from os.path import join, basename, dirname
 from torch.autograd import Variable
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, ToPILImage
+from torchvision.utils import save_image
 import numpy
 import argparse
 import sys
@@ -19,8 +20,11 @@ def toImage(net_output):
 
 def test(argv=sys.argv[1:]):
     input = "../dataset/BSDS300/images/val/54082.jpg"
+    #input = "../dataset/BSDS300/images/val/159008.jpg"
     output = "sr_{}".format(basename(input))  # save in cwd
-    model = "snapshot/gnet-epoch-200-pretrain.pth"
+    output2 = "sr__{}".format(basename(input))
+    model = "snapshot/gnet-epoch-1-pretrain.pth"
+    #model = "snapshot/gnet-epoch-200.pth"
     cuda = True
     img = Image.open(input)
     width, height = img.size
@@ -34,7 +38,10 @@ def test(argv=sys.argv[1:]):
         input = input.cuda()
 
     pred = gennet(input).cpu()
-    toImage(pred).save(output)
+    save_image(pred.data, output)
+    #ToPILImage()(pred.data).save(output)
+    
+    toImage(pred).save(output2)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,8 @@ from torchvision import models
 
 """ Generator
 """
+
+
 class ResBlock(nn.Module):
     def __init__(self, n=64, s=1, f=3):
         super().__init__()
@@ -56,6 +58,7 @@ class GenNet(nn.Module):
         self.relu = nn.ReLU()
         self.conv1 = nn.Conv2d(3, 64, 3, 1, 1)
         xavier_normal(self.conv1.weight)
+
         layers = []
         for i in range(15):
             layers.append(ResBlock())
@@ -67,6 +70,7 @@ class GenNet(nn.Module):
         self.deconv2 = DeconvBlock()
         self.conv3 = nn.Conv2d(64, 3, 3, 1, 1)
         xavier_normal(self.conv3.weight)
+        
 
     def forward(self, x):
         xs = self.relu(self.conv1(x))
@@ -79,15 +83,16 @@ class GenNet(nn.Module):
         return x
 
 
+""" VGG
+"""
+
+
 class Skip(nn.Module):
     def __init__(self):
         super().__init__()
 
     def forward(self, input):
         return input
-
-""" VGG
-"""
 
 
 def vgg13_52():
