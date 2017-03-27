@@ -13,12 +13,12 @@ dataset/
 snapshot/
 
 # Any Images
-*.jpg
-*.JPG
-*.jpeg
-*.JPEG
-*.PNG
-*.png
+*/*.jpg
+*/*.JPG
+*/*.jpeg
+*/*.JPEG
+*/*.PNG
+*/*.png
 
 # Experimental Project
 SRLSTM/
